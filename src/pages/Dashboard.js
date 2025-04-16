@@ -207,89 +207,119 @@ function Dashboard() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 10, mb: 6 }}>
-      <Typography variant="h4" align="center" gutterBottom>لوحة التحكم</Typography>
-      {/* سيتم تشغيل صوت عند الرد على طلب الزبون */}
-      {/* قسم تفعيل/تعطيل الأقسام */}
-      <Tabs value={tab} onChange={(e, v) => setTab(v)} centered sx={{ mb: 2 }}>
-        <Tab label="إدارة المنتجات" />
-        <Tab label="الطلبات" />
-        <Tab label="إعدادات" />
-        <Tab label="الملاحظات" />
-      </Tabs>
-      {tab === 0 && (
-        <Box>
-          <Typography variant="h5" gutterBottom align="center">إضافة منتج جديد</Typography>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <TextField
-              select
-              label="القسم"
-              value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
-              fullWidth
-              margin="normal"
-            >
-              {allCategories.map(cat => (
-                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="اسم المنتج"
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-            />
-            <TextField
-              label="السعر ($)"
-              type="number"
-              value={form.price}
-              onChange={e => setForm({ ...form, price: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              component="label"
-              color={form.image ? "success" : "secondary"}
-            >
-              {form.image ? "تم اختيار صورة" : "رفع صورة المنتج"}
-              <input hidden type="file" accept="image/*" onChange={handleImageChange} />
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddProduct}
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              إضافة المنتج
-            </Button>
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                السعر النهائي: {form.price} $
-              </Typography>
+    <>
+      <Container maxWidth="md" sx={{ mt: 10, mb: 6 }}>
+        <Typography variant="h4" align="center" gutterBottom>لوحة التحكم</Typography>
+        {/* سيتم تشغيل صوت عند الرد على طلب الزبون */}
+        {/* قسم تفعيل/تعطيل الأقسام */}
+        <Tabs value={tab} onChange={(e, v) => setTab(v)} centered sx={{ mb: 2 }}>
+          <Tab label="إدارة المنتجات" />
+          <Tab label="الطلبات" />
+          <Tab label="إعدادات" />
+          <Tab label="الملاحظات" />
+        </Tabs>
+        {tab === 0 && (
+          <Box>
+            <Typography variant="h5" gutterBottom align="center">إضافة منتج جديد</Typography>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <TextField
+                select
+                label="القسم"
+                value={form.category}
+                onChange={e => setForm({ ...form, category: e.target.value })}
+                fullWidth
+                margin="normal"
+              >
+                {allCategories.map(cat => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="اسم المنتج"
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                label="السعر ($)"
+                type="number"
+                value={form.price}
+                onChange={e => setForm({ ...form, price: e.target.value })}
+                fullWidth
+                margin="normal"
+              />
+              <Button
+                variant="contained"
+                component="label"
+                color={form.image ? "success" : "secondary"}
+              >
+                {form.image ? "تم اختيار صورة" : "رفع صورة المنتج"}
+                <input hidden type="file" accept="image/*" onChange={handleImageChange} />
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddProduct}
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                إضافة المنتج
+              </Button>
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  السعر النهائي: {form.price} $
+                </Typography>
+              </Box>
+              {error && <Alert severity="error">{error}</Alert>}
+              {imageError && <Alert severity="error">{imageError}</Alert>}
             </Box>
-            {error && <Alert severity="error">{error}</Alert>}
-            {imageError && <Alert severity="error">{imageError}</Alert>}
-          </Box>
-          <Box mt={6}>
-            <Typography variant="h6" gutterBottom align="center">المنتجات المضافة</Typography>
-            <TextField
-              label="بحث عن منتج بالاسم"
-              variant="outlined"
-              size="small"
-              fullWidth
-              sx={{ mb: 2 }}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-            {Object.keys(products).length === 0 && <Typography align="center" color="text.secondary">لا توجد منتجات مضافة بعد.</Typography>}
-            {Object.entries(products).map(([cat, prods]) => {
-              const filteredProds = prods.filter(prod => prod.name.toLowerCase().includes(searchTerm.toLowerCase()));
-              if (filteredProds.length === 0) return null;
-        <Box mb={3} display="flex" alignItems="center" gap={2}>
-          <input
-            type="text"
-            placeholder="اسم القسم الجديد"
+            {/* المنتجات المضافة */}
+            <Box mt={6}>
+              <Typography variant="h6" gutterBottom align="center">المنتجات المضافة</Typography>
+              <TextField
+                label="بحث عن منتج بالاسم"
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ mb: 2 }}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+              {Object.keys(products).length === 0 && <Typography align="center" color="text.secondary">لا توجد منتجات مضافة بعد.</Typography>}
+              {Object.entries(products).map(([cat, prods]) => {
+                const filteredProds = prods.filter(prod => prod.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                if (filteredProds.length === 0) return null;
+                return (
+                  <Box key={cat} mb={3}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{cat}</Typography>
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Grid container spacing={2}>
+                        {filteredProds.map((prod, idx) => (
+                          <Grid item xs={12} md={6} key={idx}>
+                            <Box display="flex" alignItems="center" gap={2}>
+                              {prod.image && (
+                                <img src={prod.image} alt="صورة المنتج" style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', border: '1px solid #eee' }} />
+                              )}
+                              {editIdx.cat === cat && editIdx.idx === idx ? (
+                                <>
+                                  <TextField size="small" value={editVal.name} onChange={e => setEditVal({ ...editVal, name: e.target.value })} sx={{ minWidth: 120 }} />
+                                  <TextField size="small" type="number" value={editVal.price} onChange={e => setEditVal({ ...editVal, price: e.target.value })} sx={{ width: 90 }} />
+                                  <IconButton color="success" onClick={() => handleSave(cat, idx)}><SaveIcon /></IconButton>
+                                </>
+                              ) : (
+                                <>
+                                  <Typography>{prod.name}</Typography>
+                                  <Typography color="text.secondary">{prod.price} $</Typography>
+                                  <IconButton color="primary" onClick={() => handleEdit(cat, idx, prod)}><EditIcon /></IconButton>
+                                </>
+                              )}
+                              <IconButton color="error" onClick={() => handleDelete(cat, idx)}><DeleteIcon /></IconButton>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Paper>
             id="new-category-input"
             style={{ padding: '8px', borderRadius: 6, border: '1px solid #ccc', minWidth: 180 }}
           />
@@ -367,65 +397,59 @@ function Dashboard() {
             })}
         </Grid>
       </Box>
-    )}
-    {tab === 0 && (
-      <Box>
-        <Typography variant="h5" gutterBottom align="center">إضافة منتج جديد</Typography>
-        <Box display="flex" flexDirection="column" gap={2}>
-          <TextField
-            select
-            label="القسم"
-            value={form.category}
-            onChange={e => setForm({ ...form, category: e.target.value })}
-            fullWidth
-            margin="normal"
-          >
-            {allCategories.map(cat => (
-              <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="اسم المنتج"
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-          />
-          <TextField
-            label="السعر ($)"
-            type="number"
-            value={form.price}
-            onChange={e => setForm({ ...form, price: e.target.value })}
-            fullWidth
-            margin="normal"
-          />
-          <Button
-            variant="contained"
-            component="label"
-            color={form.image ? "success" : "secondary"}
-          >
-            {form.image ? "تم اختيار صورة" : "رفع صورة المنتج"}
-            <input hidden type="file" accept="image/*" onChange={handleImageChange} />
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddProduct}
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            إضافة المنتج
-          </Button>
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              السعر النهائي: {form.price} $
-            </Typography>
           </Box>
-          {error && <Alert severity="error">{error}</Alert>}
-          {imageError && <Alert severity="error">{imageError}</Alert>}
-        </Box>
-        <Box mt={6}>
-          <Typography variant="h6" gutterBottom align="center">المنتجات المضافة</Typography>
-          <TextField
-            label="بحث عن منتج بالاسم"
+        )}
+        {tab === 2 && (
+          <Box>
+            <Typography variant="h5" align="center" sx={{ mb: 2 }}>تغيير كلمة السر</Typography>
+            <Box maxWidth={400} mx="auto" display="flex" flexDirection="column" gap={2}>
+              <TextField
+                label="كلمة السر الحالية"
+                type="password"
+                value={oldPassword}
+                onChange={e => setOldPassword(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="كلمة السر الجديدة"
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="تأكيد كلمة السر الجديدة"
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                fullWidth
+              />
+              <Button variant="contained" color="primary" onClick={() => {
+                // كلمة السر يجب التحقق منها عبر السيرفر (هنا مثال مبسط)
+                socket.emit('updatePassword', { oldPassword, newPassword, confirmPassword }, (result) => {
+                  if (!result.success) {
+                    setPasswordMsg(result.message);
+                    setPasswordSuccess(false);
+                    return;
+                  }
+                  setPasswordMsg('تم تغيير كلمة السر بنجاح');
+                  setPasswordSuccess(true);
+                });
+              }}>
+                تغيير كلمة السر
+              </Button>
+              {passwordMsg && <Alert severity={passwordSuccess ? 'success' : 'error'}>{passwordMsg}</Alert>}
+            </Box>
+            <Box mt={4} display="flex" gap={2} justifyContent="center">
+              <Button variant="outlined" color="primary" onClick={() => {
+                window.open('http://localhost:4000/export', '_blank');
+              }}>
+                تصدير البيانات
+              </Button>
+              <Button variant="outlined" color="error" onClick={async () => {
+                if (window.confirm('هل أنت متأكد من استعادة البيانات الافتراضية؟ سيتم حذف جميع المنتجات والملاحظات.')) {
+                  await fetch('http://localhost:4000/reset', { method: 'POST' });
+                  window.location.reload();
             variant="outlined"
             size="small"
             fullWidth
@@ -600,6 +624,8 @@ function Dashboard() {
           </Box>
         </Box>
       )}
+    </>
+  );}
 
           <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
