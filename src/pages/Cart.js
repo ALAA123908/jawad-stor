@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import socket from '../socket';
 import { Container, Typography, Grid, Card, CardContent, Button, IconButton, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -12,21 +13,19 @@ function Cart() {
   const [orderError, setOrderError] = useState('');
 
   useEffect(() => {
-    setCart(JSON.parse(localStorage.getItem('cart') || '[]'));
+    socket.emit('getCart');
+    socket.on('cart', setCart);
+    return () => socket.off('cart', setCart);
   }, []);
 
   const clearCart = () => {
-    localStorage.removeItem('cart');
-    setCart([]);
+    socket.emit('clearCart');
     setSnackMsg('تم إفراغ السلة');
     setOpen(true);
   };
 
   const removeItem = (idx) => {
-    let newCart = [...cart];
-    newCart.splice(idx, 1);
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+    socket.emit('removeCartItem', idx);
     setSnackMsg('تم حذف المنتج من السلة');
     setOpen(true);
   };
@@ -113,7 +112,7 @@ function Cart() {
               setOrderError('يرجى تعبئة جميع البيانات');
               return;
             }
-            // حفظ الطلب في localStorage
+            // إرسال الطلب للسيرفر
             const order = {
               name: orderData.name,
               phone: orderData.phone,
@@ -122,14 +121,10 @@ function Cart() {
               status: 'جديد',
               createdAt: new Date().toISOString()
             };
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            orders.unshift(order); // الأحدث أولاً
-            localStorage.setItem('orders', JSON.stringify(orders));
+            socket.emit('placeOrder', order);
             setOrderDialog(false);
             setOrderSuccess(true);
             setOrderError('');
-            setCart([]);
-            localStorage.removeItem('cart');
           }} color="success" variant="contained">تأكيد الطلب</Button>
         </DialogActions>
       </Dialog>

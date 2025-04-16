@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.3e768e0e.css",
-    "main.js": "/static/js/main.e602991e.js",
-    "index.html": "/index.html",
-    "main.3e768e0e.css.map": "/static/css/main.3e768e0e.css.map",
-    "main.e602991e.js.map": "/static/js/main.e602991e.js.map"
+    "main.css": "/jawad-stor/static/css/main.3e768e0e.css",
+    "main.js": "/jawad-stor/static/js/main.5a11f148.js",
+    "index.html": "/jawad-stor/index.html",
+    "main.3e768e0e.css.map": "/jawad-stor/static/css/main.3e768e0e.css.map",
+    "main.5a11f148.js.map": "/jawad-stor/static/js/main.5a11f148.js.map"
   },
   "entrypoints": [
     "static/css/main.3e768e0e.css",
-    "static/js/main.e602991e.js"
+    "static/js/main.5a11f148.js"
   ]
 }

@@ -16,6 +16,9 @@ const categories = [
 
 function Dashboard() {
   const [tab, setTab] = useState(0);
+  // حالة الملاحظات
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("");
   // حالة تغيير كلمة السر
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -53,21 +56,24 @@ function Dashboard() {
 
   // جلب البيانات من السيرفر اللحظي
   useEffect(() => {
-    socket.on('init', ({ products, categories, cartData, dashboardPassword }) => {
+    socket.on('init', ({ products, categories, cartData, dashboardPassword, notes }) => {
       setProducts(products || {});
       setOrders(cartData['dashboard'] || []);
       setCustomCategories(categories || []);
+      setNotes(notes || []);
       // يمكن إضافة كلمة السر هنا إذا أردت
     });
     socket.on('products', setProducts);
     socket.on('categories', setCustomCategories);
     socket.on('cartData', cartData => setOrders(cartData['dashboard'] || []));
+    socket.on('notes', setNotes);
     // ... استقبال كلمة السر إذا أردت
     return () => {
       socket.off('init');
       socket.off('products');
       socket.off('categories');
       socket.off('cartData');
+      socket.off('notes');
     };
   }, []);
 
@@ -190,20 +196,96 @@ function Dashboard() {
     setDeleteSuccess(true);
   };
 
+  const handleAddNote = () => {
+    if (!newNote.trim()) return;
+    socket.emit('addNote', newNote);
+    setNewNote('');
+  };
+
+  const handleDeleteNote = (idx) => {
+    socket.emit('deleteNote', idx);
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 10, mb: 6 }}>
       <Typography variant="h4" align="center" gutterBottom>لوحة التحكم</Typography>
       {/* سيتم تشغيل صوت عند الرد على طلب الزبون */}
       {/* قسم تفعيل/تعطيل الأقسام */}
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 3 }}>
-        <Tab label="المنتجات" />
+      <Tabs value={tab} onChange={(e, v) => setTab(v)} centered sx={{ mb: 2 }}>
+        <Tab label="إدارة المنتجات" />
         <Tab label="الطلبات" />
-        <Tab label="إدارة الأقسام للزبون" />
+        <Tab label="إعدادات" />
+        <Tab label="الملاحظات" />
       </Tabs>
-      {tab === 2 && (
-        <Box mb={4} p={2} sx={{ border: '1px solid #eee', borderRadius: 2, background: '#fafafa' }}>
-        <Typography variant="h6" gutterBottom>إظهار أو إخفاء الأقسام للزبون</Typography>
-        {/* قسم إضافة قسم جديد */}
+      {tab === 0 && (
+        <Box>
+          <Typography variant="h5" gutterBottom align="center">إضافة منتج جديد</Typography>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <TextField
+              select
+              label="القسم"
+              value={form.category}
+              onChange={e => setForm({ ...form, category: e.target.value })}
+              fullWidth
+              margin="normal"
+            >
+              {allCategories.map(cat => (
+                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="اسم المنتج"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+            />
+            <TextField
+              label="السعر ($)"
+              type="number"
+              value={form.price}
+              onChange={e => setForm({ ...form, price: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
+            <Button
+              variant="contained"
+              component="label"
+              color={form.image ? "success" : "secondary"}
+            >
+              {form.image ? "تم اختيار صورة" : "رفع صورة المنتج"}
+              <input hidden type="file" accept="image/*" onChange={handleImageChange} />
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddProduct}
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              إضافة المنتج
+            </Button>
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                السعر النهائي: {form.price} $
+              </Typography>
+            </Box>
+            {error && <Alert severity="error">{error}</Alert>}
+            {imageError && <Alert severity="error">{imageError}</Alert>}
+          </Box>
+          <Box mt={6}>
+            <Typography variant="h6" gutterBottom align="center">المنتجات المضافة</Typography>
+            <TextField
+              label="بحث عن منتج بالاسم"
+              variant="outlined"
+              size="small"
+              fullWidth
+              sx={{ mb: 2 }}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+            {Object.keys(products).length === 0 && <Typography align="center" color="text.secondary">لا توجد منتجات مضافة بعد.</Typography>}
+            {Object.entries(products).map(([cat, prods]) => {
+              const filteredProds = prods.filter(prod => prod.name.toLowerCase().includes(searchTerm.toLowerCase()));
+              if (filteredProds.length === 0) return null;
         <Box mb={3} display="flex" alignItems="center" gap={2}>
           <input
             type="text"
@@ -426,22 +508,99 @@ function Dashboard() {
               }
               setPasswordMsg('تم تغيير كلمة السر بنجاح');
               setPasswordSuccess(true);
-              setOldPassword("");
-              setNewPassword("");
-              setConfirmPassword("");
             });
           }}>
-            حفظ كلمة السر الجديدة
+            تغيير كلمة السر
           </Button>
-          {passwordMsg && (
-            <Alert severity={passwordSuccess ? 'success' : 'error'}>{passwordMsg}</Alert>
-          )}
+          {passwordMsg && <Alert severity={passwordSuccess ? 'success' : 'error'}>{passwordMsg}</Alert>}
+        </Box>
+        <Box mt={4} display="flex" gap={2} justifyContent="center">
+          <Button variant="outlined" color="primary" onClick={() => {
+            window.open('http://localhost:4000/export', '_blank');
+          }}>
+            تصدير البيانات
+          </Button>
+          <Button variant="outlined" color="error" onClick={async () => {
+            if (window.confirm('هل أنت متأكد من استعادة البيانات الافتراضية؟ سيتم حذف جميع المنتجات والملاحظات.')) {
+              await fetch('http://localhost:4000/reset', { method: 'POST' });
+              window.location.reload();
+            }
+          }}>
+            استعادة البيانات الافتراضية
+          </Button>
+        </Box>
+      </Box>
+    )}
+    {tab === 1 && (
+      <Box>
+        <Typography variant="h5" gutterBottom align="center">الطلبات</Typography>
+        {/* ... جدول الطلبات ... */}
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">اسم الزبون</TableCell>
+                <TableCell align="center">رقم الهاتف</TableCell>
+                <TableCell align="center">العنوان</TableCell>
+                <TableCell align="center">الطلبات</TableCell>
+                <TableCell align="center">الحالة</TableCell>
+                <TableCell align="center">التحكم</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orders.map((order, idx) => (
+                <TableRow key={idx}>
+                  <TableCell align="center">{order.name}</TableCell>
+                  <TableCell align="center">{order.phone}</TableCell>
+                  <TableCell align="center">{order.address}</TableCell>
+                  <TableCell align="center">
+                    {order.items && order.items.map((item, i) => (
+                      <div key={i}>{item.name} × {item.quantity}</div>
+                    ))}
+                  </TableCell>
+                  <TableCell align="center">{order.status || 'جديد'}</TableCell>
+                  <TableCell align="center">
+                    {order.status === 'جاري التوصيل' ? (
+                      <span style={{color: 'green'}}>تم الرد</span>
+                    ) : (
+                      <Button variant="contained" color="primary" onClick={() => handleOrderStatus(idx)}>
+                        جاري التوصيل
+      )}
+      {tab === 3 && (
+        <Box>
+          <Typography variant="h5" gutterBottom align="center">الملاحظات</Typography>
+          <Box display="flex" alignItems="center" gap={2} mt={2} mb={2}>
+            <TextField
+              label="أضف ملاحظة جديدة"
+              value={newNote}
+              onChange={e => setNewNote(e.target.value)}
+              fullWidth
+              variant="outlined"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                if (newNote.trim()) {
+                  socket.emit('addNote', newNote.trim());
+                  setNewNote("");
+                }
+              }}
+            >
+              إضافة
+            </Button>
+          </Box>
+          <Box>
+            {notes.length === 0 && <Typography color="text.secondary">لا توجد ملاحظات بعد.</Typography>}
+            {notes.map((note, idx) => (
+              <Paper key={idx} sx={{ p: 2, mb: 1 }}>
+                {note}
+              </Paper>
+            ))}
           </Box>
         </Box>
       )}
-      {tab === 1 && (
-        <Box>
-          <Typography variant="h5" gutterBottom align="center">الطلبات</Typography>
+
           <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
               <TableHead>
